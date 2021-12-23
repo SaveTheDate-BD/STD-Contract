@@ -4,21 +4,55 @@ pragma solidity 0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "base64-sol/base64.sol";
+import "./Receivers.sol";
+uint256 constant theZeroDay = 5000000; // 13698 years
+uint256 constant secondsInDay = 60 * 60 * 24;
+uint256 constant dropPeriod = 100; //days
 
-contract TheDate is ERC721URIStorage, Ownable {
-    // uint256 public tokenCounter;
+contract TheDate is ERC721URIStorage, Ownable, PaymentRecievers {
+    uint256 public tokensBoughtInPast;
     event CreatedSVGNFT(uint256 indexed tokenId, string tokenURI);
 
     constructor() ERC721("SAVE THE DATE", "STD") {
         // tokenCounter = 0;
     }
 
-    function create(uint256 day) public {
+    modifier dateBounds(uint256 day) {
+        require(day >= 0 && day <= theZeroDay * 2, "Out of date bounds");
+        _;
+    }
+
+    // 100 = $40 = 0.01eth
+    function getAvailability(uint256 day)
+        public
+        view
+        dateBounds(day)
+        returns (uint256)
+    {
+        if (ownerOf(day) == address(0)) {
+            return 0;
+        }
+        uint256 currentDay = block.timestamp / secondsInDay;
+        uint256 diff = day - currentDay;
+        if (diff < dropPeriod) {
+            return 100 * 100 * 100; //100 eths
+        }
+        return 100 + tokensBoughtInPast * 10;
+    }
+
+    function create(uint256 day) public payable dateBounds(day) {
+        uint256 price = getAvailability(day);
+        require(price > 0);
+        require(msg.value >= price);
         _safeMint(msg.sender, day);
-        string memory svg = "";
-        // string memory imageURI = svgToImageURI(svg);
-        // _setTokenURI(day, formatTokenURI(imageURI));
-        // emit CreatedSVGNFT(day, svg);
+        tokensBoughtInPast = tokensBoughtInPast + 1;
+    }
+
+    function dropMint(uint256 day) public dateBounds(day) {
+        uint256 price = getAvailability(day);
+        require(msg.sender == owner());
+        require(price > 0);
+        _safeMint(address(this), day);
     }
 
     function formatTokenURI(string memory imageURI)
