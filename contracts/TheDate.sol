@@ -5,15 +5,24 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "base64-sol/base64.sol";
 import "./Receivers.sol";
+import "./Vis/VisCaller.sol";
+
 uint256 constant theZeroDay = 5000000; // 13698 years
 uint256 constant secondsInDay = 60 * 60 * 24;
 uint256 constant dropPeriod = 100; //days
+string constant COLLECTION_NAME = "SAVE THE DATE";
+string constant TOKEN_NAME = "STD";
 
-contract TheDate is ERC721URIStorage, Ownable, PaymentRecievers {
+contract TheDate is
+    ERC721URIStorage,
+    Ownable,
+    PaymentRecievers,
+    SaveDateVisCaller
+{
     uint256 public tokensBoughtInPast;
-    event CreatedSVGNFT(uint256 indexed tokenId, string tokenURI);
+    address visualizerAddress;
 
-    constructor() ERC721("SAVE THE DATE", "STD") {
+    constructor() ERC721(COLLECTION_NAME, TOKEN_NAME) {
         // tokenCounter = 0;
     }
 
@@ -44,7 +53,7 @@ contract TheDate is ERC721URIStorage, Ownable, PaymentRecievers {
         uint256 price = getAvailability(day);
         require(price > 0);
         require(msg.value >= price);
-        _safeMint(msg.sender, day);
+        finishMinting(msg.sender, day);
         tokensBoughtInPast = tokensBoughtInPast + 1;
     }
 
@@ -52,14 +61,23 @@ contract TheDate is ERC721URIStorage, Ownable, PaymentRecievers {
         uint256 price = getAvailability(day);
         require(msg.sender == owner());
         require(price > 0);
-        _safeMint(address(this), day);
+        finishMinting(address(this), day);
     }
 
-    function formatTokenURI(string memory imageURI)
-        public
-        pure
-        returns (string memory)
-    {
+    function finishMinting(address receiver, uint256 tokenId) {
+        string imageURI = getDateImage(tokenId);
+        string name = getDateName(tokenId);
+        string desc = getDateDesc(tokenId);
+
+        _safeMint(receiver, tokenId);
+        _setTokenURI(tokenId, formatTokenURI(imageURI, name, desc));
+    }
+
+    function formatTokenURI(
+        string memory imageURI,
+        string memory _name,
+        string memory _desc
+    ) public pure returns (string memory) {
         return
             string(
                 abi.encodePacked(
@@ -68,8 +86,10 @@ contract TheDate is ERC721URIStorage, Ownable, PaymentRecievers {
                         bytes(
                             abi.encodePacked(
                                 '{"name":"',
-                                "SVG NFT", // You can add whatever name here
-                                '", "description":"An NFT based on SVG!", "attributes":"", "image":"',
+                                _name, // You can add whatever name here
+                                '", "description":"',
+                                _desc,
+                                '", "attributes":"", "image":"',
                                 imageURI,
                                 '"}'
                             )
