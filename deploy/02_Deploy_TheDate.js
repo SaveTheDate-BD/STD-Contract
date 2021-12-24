@@ -49,22 +49,23 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   );
 
   // fund with LINK
-  let networkId = await getNetworkIdFromName(network.name);
-  const fundAmount = networkConfig[networkId]["fundAmount"];
-  const linkTokenContract = await ethers.getContractFactory("LinkToken");
-  const linkToken = new ethers.Contract(
-    linkTokenAddress,
-    linkTokenContract.interface,
-    signer
-  );
-  let fund_tx = await linkToken.transfer(RandomSVG.address, fundAmount);
-  await fund_tx.wait(1);
+  //   let networkId = await getNetworkIdFromName(network.name);
+  //   const fundAmount = networkConfig[networkId]["fundAmount"];
+  //   const linkTokenContract = await ethers.getContractFactory("LinkToken");
+  //   const linkToken = new ethers.Contract(
+  //     linkTokenAddress,
+  //     linkTokenContract.interface,
+  //     signer
+  //   );
+  //   let fund_tx = await linkToken.transfer(RandomSVG.address, fundAmount);
+  //   await fund_tx.wait(1);
 
-  log("Let's create an NFT now!");
-  tx = await randomSVG.dropMint(7000, { gasLimit: 3000000 });
-  let receipt = await tx.wait(1);
-  let tokenId = receipt.events[3].topics[2];
-  log(`You've made your NFT! This is number ${tokenId}`);
+  //   log("Let's create an NFT now!");
+  //   tx = await randomSVG.dropMint(7000, { gasLimit: 30000000 });
+  //   let receipt = await tx.wait(1);
+  //   console.log(" >> ", receipt.events[0].topics);
+  //   let tokenId = "not yet "; //receipt.events[3].topics[2];
+  //   log(`You've made your NFT! This is number ${tokenId}`);
 };
 
-module.exports.tags = ["all", "rsvg"];
+module.exports.tags = ["all", "mine", "main"];

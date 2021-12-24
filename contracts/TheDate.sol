@@ -14,6 +14,7 @@ string constant COLLECTION_NAME = "SAVE THE DATE";
 string constant TOKEN_NAME = "STD";
 
 contract SaveTheDate is
+    IERC721Receiver,
     ERC721URIStorage,
     Ownable,
     PaymentRecievers,
@@ -34,6 +35,10 @@ contract SaveTheDate is
         _;
     }
 
+    function getCurrentDay() internal view returns (uint256) {
+        return (block.timestamp / secondsInDay) + theZeroDay;
+    }
+
     // 100 = $40 = 0.01eth
     function getAvailability(uint256 day)
         public
@@ -42,13 +47,14 @@ contract SaveTheDate is
         returns (uint256)
     {
         if (_exists(day)) {
-            revert("Token Already Exists");
+            return 0;
         }
-        uint256 currentDay = block.timestamp / secondsInDay;
-        console.log("DAY", currentDay, day);
+        uint256 currentDay = getCurrentDay();
         // for the future
+        console.log("dd", day, currentDay);
         if (day >= currentDay) {
             uint256 diff = day - currentDay;
+            console.log("diff", diff);
             if (diff < dropPeriod) {
                 return 100 * 100 * 100; //100 eths
             } else {
@@ -67,6 +73,7 @@ contract SaveTheDate is
         uint256 price = getAvailability(day);
         require(price > 0);
         require(msg.value >= price);
+        console.log(" =-=-= ", day);
         finishMinting(msg.sender, day);
         tokensBought = tokensBought + 1;
     }
@@ -88,5 +95,14 @@ contract SaveTheDate is
         console.log("receiver", receiver);
         _safeMint(receiver, tokenId);
         _setTokenURI(tokenId, formatTokenURI(imageURI, name, desc));
+    }
+
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes calldata
+    ) external pure override returns (bytes4) {
+        return this.onERC721Received.selector;
     }
 }

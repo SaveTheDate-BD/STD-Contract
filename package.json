@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "test": "npx hardhat test"
   },
   "license": "MIT",
   "devDependencies": {
@@ -18,6 +19,7 @@
     "ethers": "^5.0.24",
     "hardhat": "^2.6.1",
     "hardhat-deploy": "^0.7.0-beta.39",
+    "hardhat-gas-reporter": "^1.0.6",
     "web3": "^1.2.9"
   },
   "dependencies": {
@@ -31,6 +33,7 @@
     "base64-sol": "^1.0.1",
     "dotenv": "^8.2.0",
     "eslint": "^7.22.0",
+    "eth-gas-reporter": "^0.2.23",
     "mocha-skip-if": "^0.0.3",
     "transform": "^1.1.2"
   },

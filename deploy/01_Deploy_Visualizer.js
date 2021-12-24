@@ -27,4 +27,4 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   );
 };
 
-module.exports.tags = ["all", "vis"];
+module.exports.tags = ["all", "vis", "mine"];
