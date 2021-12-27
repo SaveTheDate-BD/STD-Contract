@@ -20,6 +20,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     svgNFTContract.interface,
     signer
   );
+  console.log(" > > ", chainId);
   const networkName = networkConfig[chainId]["name"];
 
   log(

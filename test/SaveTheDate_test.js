@@ -10,8 +10,8 @@ const {
   developmentChains,
 } = require("../helper-hardhat-config");
 
-const remarkableDay = 5000000 + 365 * 1981;
-const expensiveDay = 5000000 + 365 * 2022;
+const remarkableDay = 5000000 + 365 * (1981 - 1970);
+const expensiveDay = 5000000 + 366 * (2022 - 1970);
 
 let priceOfTheDay;
 skip
@@ -30,13 +30,13 @@ skip
     it("should return the correct Price for today", async () => {
       priceOfTheDay = await std.getAvailability(expensiveDay);
       console.log("__ price: ", priceOfTheDay.toNumber());
-      expect(priceOfTheDay.eq(100 * 100 * 100)).to.be.true;
+      expect(priceOfTheDay.toNumber()).to.equal(100 * 100 * 100);
     });
 
     it("should return the correct Price for past", async () => {
       priceOfTheDay = await std.getAvailability(remarkableDay);
       console.log("__ price: ", priceOfTheDay.toNumber());
-      expect(priceOfTheDay.eq(100)).to.be.true;
+      expect(priceOfTheDay.toNumber()).to.equal(100);
     });
 
     it("should mint", async () => {
@@ -47,24 +47,24 @@ skip
 
     it("get meta", async () => {
       let meta = await std.tokenURI(remarkableDay);
-      console.log("meta", meta);
+      // console.log("meta", meta);
       expect(true).to.be.true;
     });
 
     it(" Price for past after mint for existing", async () => {
       priceOfTheDay = await std.getAvailability(remarkableDay);
       console.log("__ price: ", priceOfTheDay.toNumber());
-      expect(priceOfTheDay.eq(0)).to.be.true;
+      expect(priceOfTheDay.toNumber()).to.equal(0);
     });
     it(" Price for past after mint for past", async () => {
       priceOfTheDay = await std.getAvailability(remarkableDay - 1);
       console.log("__ price: ", priceOfTheDay.toNumber());
-      expect(priceOfTheDay.eq(110)).to.be.true;
+      expect(priceOfTheDay.toNumber()).to.equal(110);
     });
 
     it("expensive day no change after mint", async () => {
       priceOfTheDay = await std.getAvailability(expensiveDay);
       console.log("__ price: ", priceOfTheDay.toNumber());
-      expect(priceOfTheDay.eq(100 * 100 * 100)).to.be.true;
+      expect(priceOfTheDay.toNumber()).to.equal(100 * 100 * 100);
     });
   });

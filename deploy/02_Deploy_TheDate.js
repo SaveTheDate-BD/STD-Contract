@@ -12,7 +12,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   let vrfCoordinatorAddress;
   let VisualizerContract;
 
-  if (chainId == 31337) {
+  if (chainId == 1337) {
     let linkToken = await get("LinkToken");
     VisualizerContract = await get("SaveDateVisualiser");
     let VRFCoordinatorMock = await get("VRFCoordinatorMock");
@@ -22,6 +22,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   } else {
     linkTokenAddress = networkConfig[chainId]["linkToken"];
     vrfCoordinatorAddress = networkConfig[chainId]["vrfCoordinator"];
+    VisualizerContract = await get("SaveDateVisualiser");
   }
   const keyHash = networkConfig[chainId]["keyHash"];
   const fee = networkConfig[chainId]["fee"];
