@@ -29,15 +29,31 @@ const ETHERSCAN_API_KEY =
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "your private key";
 
 module.exports = {
-  defaultNetwork: "ganache",
+  defaultNetwork: "kovan",
   networks: {
     hardhat: {
       // // If you want to do some forking, uncomment this
       // forking: {
       //   url: MAINNET_RPC_URL
       // }
+      // forking: {
+      //   url: "https://eth-rinkeby.alchemyapi.io/v2/MplwtsmMvMPZGJ2bkuOnWVoKuAHXx9Ui",
+      //   blockNumber: 9888186,
+      // },
     },
-    localhost: {},
+    localhost: {
+      url: KOVAN_RPC_URL,
+      // accounts: [PRIVATE_KEY],
+      // accounts: [PRIVATE_KEY],
+      saveDeployments: true,
+      accounts: {
+        mnemonic: MNEMONIC,
+      },
+      forking: {
+        url: "https://eth-kovan.alchemyapi.io/v2/5Q1vfUbt3DFlfF07BWcQBYkXXTc6nsug",
+        blockNumber: 9888186,
+      },
+    },
     kovan: {
       url: KOVAN_RPC_URL,
       // accounts: [PRIVATE_KEY],
@@ -49,8 +65,20 @@ module.exports = {
     rinkeby: {
       url: RINKEBY_RPC_URL,
       // accounts: [PRIVATE_KEY],
-      accounts: [PRIVATE_KEY],
+      // accounts: [PRIVATE_KEY],
       saveDeployments: true,
+      accounts: {
+        mnemonic: MNEMONIC,
+      },
+    },
+    rinkebytest: {
+      url: "http://localhost:7545",
+      // accounts: [PRIVATE_KEY],
+      // accounts: [PRIVATE_KEY],
+      // saveDeployments: true,
+      accounts: {
+        mnemonic: MNEMONIC,
+      },
     },
     ganache: {
       url: "http://localhost:7545",
@@ -91,6 +119,9 @@ module.exports = {
   },
   solidity: {
     compilers: [
+      {
+        version: "0.8.7",
+      },
       {
         version: "0.8.0",
       },

@@ -1,7 +1,7 @@
 type = "directrequest"
 schemaVersion = 1
 name = "test metadata render job"
-contractAddress = "0xe814fE9f96EA50A3AD4726C1d996E0439a6238Dd"
+contractAddress = "0x23ef945f9Bf2319145160c5d3cfF8832e17fdE8a"
 # Optional externalJobID: Automatically generated if unspecified
 #externalJobID       = "0EEC7E1D-D0D2-476C-A1A8-72DFB6633F02"
 observationSource = """
@@ -12,15 +12,15 @@ observationSource = """
 
     decode_cbor  [type="cborparse" data="$(decode_log.data)"]
     my_bridge_task [type="bridge"
-                name="STD-MR-Bridge"
+                name="std-mr-bridge"
                 requestData="{\\"data\\":{\\"seed\\": $(decode_cbor.seed)}}"
                 ]
-    encode_data  [type="ethabiencode" abi="(uint256 value)" data="{ \\"value\\": $(my_bridge_task) }"]
+    encode_data  [type="ethabiencode" abi="(address receiver, unit256 tokenId, string url)" data="{ \\"receiver\\": $(decode_log.rerequestersult),\\"tokenId\\": $(decode_cbor.seed),\\"url\\": $(my_bridge_task.result) }"]
     encode_tx    [type="ethabiencode"
                   abi="fulfillOracleRequest(bytes32 requestId, uint256 payment, address callbackAddress, bytes4 callbackFunctionId, uint256 expiration, bytes32 data)"
                   data="{\\"requestId\\": $(decode_log.requestId), \\"payment\\": $(decode_log.payment), \\"callbackAddress\\": $(decode_log.callbackAddr), \\"callbackFunctionId\\": $(decode_log.callbackFunctionId), \\"expiration\\": $(decode_log.cancelExpiration), \\"data\\": $(encode_data)}"
                  ]
-    submit_tx    [type="ethtx" to="0xe814fE9f96EA50A3AD4726C1d996E0439a6238Dd" data="$(encode_tx)"]
+    submit_tx    [type="ethtx" to="0x23ef945f9Bf2319145160c5d3cfF8832e17fdE8a" data="$(encode_tx)"]
 
-    decode_log -> decode_cbor -> my_bridge_task -> encode_data -> encode_data -> encode_tx -> submit_tx
+    decode_log -> decode_cbor -> my_bridge_task -> encode_data -> encode_tx -> submit_tx
 """

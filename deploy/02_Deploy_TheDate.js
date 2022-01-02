@@ -14,19 +14,31 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
   if (chainId == 1337) {
     let linkToken = await get("LinkToken");
-    VisualizerContract = await get("SaveDateVisualiser");
+    // VisualizerContract = await get("SaveDateVisualiser");
     let VRFCoordinatorMock = await get("VRFCoordinatorMock");
     linkTokenAddress = linkToken.address;
     vrfCoordinatorAddress = VRFCoordinatorMock.address;
     additionalMessage = " --linkaddress " + linkTokenAddress;
+    // fund with LINK
+    let networkId = await getNetworkIdFromName(network.name);
+    const fundAmount = networkConfig[networkId]["fundAmount"];
+    // const linkTokenContract = await ethers.getContractFactory("LinkToken");
+    // const linkToken = new ethers.Contract(
+    //   linkTokenAddress,
+    //   linkTokenContract.interface,
+    //   signer
+    // );
+    let fund_tx = await linkToken.transfer(RandomSVG.address, fundAmount);
+    console.log("funded");
+    await fund_tx.wait(1);
   } else {
     linkTokenAddress = networkConfig[chainId]["linkToken"];
     vrfCoordinatorAddress = networkConfig[chainId]["vrfCoordinator"];
-    VisualizerContract = await get("SaveDateVisualiser");
+    // VisualizerContract = await get("SaveDateVisualiser");
   }
   const keyHash = networkConfig[chainId]["keyHash"];
   const fee = networkConfig[chainId]["fee"];
-  args = [VisualizerContract.address];
+  args = [];
   log("----------------------------------------------------");
   const RandomSVG = await deploy("SaveTheDate", {
     from: deployer,
@@ -50,17 +62,16 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   );
 
   // fund with LINK
-  //   let networkId = await getNetworkIdFromName(network.name);
-  //   const fundAmount = networkConfig[networkId]["fundAmount"];
-  //   const linkTokenContract = await ethers.getContractFactory("LinkToken");
-  //   const linkToken = new ethers.Contract(
-  //     linkTokenAddress,
-  //     linkTokenContract.interface,
-  //     signer
-  //   );
-  //   let fund_tx = await linkToken.transfer(RandomSVG.address, fundAmount);
-  //   await fund_tx.wait(1);
-
+  let networkId = await getNetworkIdFromName(network.name);
+  const fundAmount = networkConfig[networkId]["fundAmount"];
+  const linkTokenContract = await ethers.getContractFactory("LinkToken");
+  const linkToken = new ethers.Contract(
+    linkTokenAddress,
+    linkTokenContract.interface,
+    signer
+  );
+  let fund_tx = await linkToken.transfer(RandomSVG.address, fundAmount);
+  await fund_tx.wait(1);
   //   log("Let's create an NFT now!");
   //   tx = await randomSVG.dropMint(7000, { gasLimit: 30000000 });
   //   let receipt = await tx.wait(1);
