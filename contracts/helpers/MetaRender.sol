@@ -6,7 +6,7 @@ import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 contract MetaRender is ChainlinkClient {
     using Chainlink for Chainlink.Request;
     event Fulfillmr(uint256 indexed _tokenId, string indexed _url);
-    event TestMDR(uint256 day);
+    event MetadataRequested(uint256 day);
     string public url;
 
     address private oracle;
@@ -20,8 +20,8 @@ contract MetaRender is ChainlinkClient {
 
     constructor() {
         setPublicChainlinkToken();
-        oracle = 0x565963c991825652FD38D5e291ec5619DFcf5345;
-        jobId = "405a67d17a1045c0ac2d3d9db43f4abd";
+        oracle = 0x718Cc73722a2621De5F2f0Cb47A5180875f62D60;
+        jobId = "86b489ec4d84439c96181a8df7b22223";
         fee = 0.1 * 10**18;
     }
 
@@ -33,7 +33,7 @@ contract MetaRender is ChainlinkClient {
         );
         request.addUint("seed", day);
         console.log("Meta3Data requested");
-        emit TestMDR(day);
+        emit MetadataRequested(day);
         // Sends the request
         return sendChainlinkRequestTo(oracle, request, fee);
     }

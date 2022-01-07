@@ -9,9 +9,10 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy, log } = deployments;
   const { deployer } = await getNamedAccounts();
   const chainId = await getChainId();
-  const nodeAddress = "0xc8f64929FAdE244ADA4e13dEAf0745989526bFCF"; //"0xe814fE9f96EA50A3AD4726C1d996E0439a6238Dd";
+  const nodeAddress = "0xe814fE9f96EA50A3AD4726C1d996E0439a6238Dd"; ///"0xc8f64929FAdE244ADA4e13dEAf0745989526bFCF"; //"0xe814fE9f96EA50A3AD4726C1d996E0439a6238Dd";
   linkTokenAddress = networkConfig[chainId]["linkToken"];
-  console.log("deployer", chainId, deployer);
+  console.log("chain ID:", chainId);
+  console.log("deployer", deployer);
   // If we are on a local development network, we need to deploy mocks!
   const args = [linkTokenAddress];
   const Oracle = await deploy("Oracle", {

@@ -29,9 +29,10 @@ const ETHERSCAN_API_KEY =
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "your private key";
 
 module.exports = {
-  defaultNetwork: "kovan",
+  defaultNetwork: "hardhat",
   networks: {
     hardhat: {
+      chainId: 4,
       // // If you want to do some forking, uncomment this
       // forking: {
       //   url: MAINNET_RPC_URL
@@ -42,16 +43,12 @@ module.exports = {
       // },
     },
     localhost: {
-      url: KOVAN_RPC_URL,
+      // url: KOVAN_RPC_URL,
       // accounts: [PRIVATE_KEY],
       // accounts: [PRIVATE_KEY],
       saveDeployments: true,
       accounts: {
         mnemonic: MNEMONIC,
-      },
-      forking: {
-        url: "https://eth-kovan.alchemyapi.io/v2/5Q1vfUbt3DFlfF07BWcQBYkXXTc6nsug",
-        blockNumber: 9888186,
       },
     },
     kovan: {
@@ -71,15 +68,15 @@ module.exports = {
         mnemonic: MNEMONIC,
       },
     },
-    rinkebytest: {
-      url: "http://localhost:7545",
-      // accounts: [PRIVATE_KEY],
-      // accounts: [PRIVATE_KEY],
-      // saveDeployments: true,
-      accounts: {
-        mnemonic: MNEMONIC,
-      },
-    },
+    // rinkebytest: {
+    //   url: "http://localhost:7545",
+    //   // accounts: [PRIVATE_KEY],
+    //   // accounts: [PRIVATE_KEY],
+    //   // saveDeployments: true,
+    //   accounts: {
+    //     mnemonic: MNEMONIC,
+    //   },
+    // },
     ganache: {
       url: "http://localhost:7545",
       accounts: {
