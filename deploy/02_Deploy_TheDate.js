@@ -39,6 +39,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const keyHash = networkConfig[chainId]["keyHash"];
   const fee = networkConfig[chainId]["fee"];
   args = [];
+  log(`Network: ${chainId}`);
+  log(`Deployer: ${deployer}`);
   log("----------------------------------------------------");
   const RandomSVG = await deploy("SaveTheDate", {
     from: deployer,

@@ -40,18 +40,18 @@ contract SaveTheDate is
         return (block.timestamp / secondsInDay) + theZeroDay;
     }
 
-    function fulfill(
-        bytes32 _requestId,
-        address _receiver,
-        uint256 _tokenId,
-        string memory _url
-    ) public override recordChainlinkFulfillment(_requestId) {
-        url = _url;
-        console.log("fulfill w2url override", _url);
-        emit Fulfill(_tokenId, _url);
-        finishMinting(_receiver, _tokenId, _url);
-        // _safeMint(tokenId, _url);
-    }
+    // function fulfill(
+    //     bytes32 _requestId,
+    //     address _receiver,
+    //     uint256 _tokenId,
+    //     string memory _url
+    // ) public override recordChainlinkFulfillment(_requestId) {
+    //     url = _url;
+    //     console.log("fulfill w2url override", _url);
+    //     emit Fulfill(_tokenId, _url);
+    //     finishMinting(_receiver, _tokenId, _url);
+    //     // _safeMint(tokenId, _url);
+    // }
 
     // 100 = $40 = 0.01eth
     function getAvailability(uint256 day)

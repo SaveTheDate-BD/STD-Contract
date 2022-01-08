@@ -20,9 +20,7 @@ const RINKEBY_RPC_URL =
 const KOVAN_RPC_URL =
   process.env.KOVAN_RPC_URL ||
   "https://eth-kovan.alchemyapi.io/v2/your-api-key";
-const MNEMONIC =
-  process.env.MNEMONIC ||
-  "famous image inmate fossil upper future mobile useful mountain crawl rebel junk";
+const MNEMONIC = process.env.MNEMONIC || null;
 const ETHERSCAN_API_KEY =
   process.env.ETHERSCAN_API_KEY || "Your etherscan API key";
 // optional
@@ -45,28 +43,28 @@ module.exports = {
     localhost: {
       // url: KOVAN_RPC_URL,
       // accounts: [PRIVATE_KEY],
-      // accounts: [PRIVATE_KEY],
+      accounts: [PRIVATE_KEY],
       saveDeployments: true,
-      accounts: {
-        mnemonic: MNEMONIC,
-      },
+      // accounts: {
+      //   mnemonic: MNEMONIC,
+      // },
     },
     kovan: {
       url: KOVAN_RPC_URL,
-      // accounts: [PRIVATE_KEY],
-      accounts: {
-        mnemonic: MNEMONIC,
-      },
+      accounts: [PRIVATE_KEY],
+      // accounts: {
+      //   mnemonic: MNEMONIC,
+      // },
       saveDeployments: true,
     },
     rinkeby: {
       url: RINKEBY_RPC_URL,
-      // accounts: [PRIVATE_KEY],
+      accounts: [PRIVATE_KEY],
       // accounts: [PRIVATE_KEY],
       saveDeployments: true,
-      accounts: {
-        mnemonic: MNEMONIC,
-      },
+      // accounts: {
+      //   mnemonic: MNEMONIC,
+      // },
     },
     // rinkebytest: {
     //   url: "http://localhost:7545",
@@ -79,24 +77,24 @@ module.exports = {
     // },
     ganache: {
       url: "http://localhost:7545",
-      accounts: {
-        mnemonic: MNEMONIC,
-      },
+      // accounts: {
+      //   mnemonic: MNEMONIC,
+      // },
     },
     mainnet: {
       url: MAINNET_RPC_URL,
       // accounts: [PRIVATE_KEY],
-      accounts: {
-        mnemonic: MNEMONIC,
-      },
+      // accounts: {
+      //   mnemonic: MNEMONIC,
+      // },
       saveDeployments: true,
     },
     polygon: {
       url: "https://rpc-mainnet.maticvigil.com/",
       // accounts: [PRIVATE_KEY],
-      accounts: {
-        mnemonic: MNEMONIC,
-      },
+      // accounts: {
+      //   mnemonic: MNEMONIC,
+      // },
       saveDeployments: true,
     },
   },
