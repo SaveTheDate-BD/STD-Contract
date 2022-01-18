@@ -3,14 +3,12 @@
 
 pragma solidity ^0.8.0;
 
-// import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "../openzeppelin/token/ERC721/extensions/ERC721Royalty.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "../ERC721.sol";
 
 /**
  * @dev ERC721 token with storage based token URI management.
  */
-abstract contract URIStorage is ERC721Royalty, Ownable {
+abstract contract ERC721URIStorage is ERC721 {
     using Strings for uint256;
 
     // Optional mapping for token URIs
@@ -19,17 +17,8 @@ abstract contract URIStorage is ERC721Royalty, Ownable {
     /**
      * @dev See {IERC721Metadata-tokenURI}.
      */
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
-    {
-        require(
-            _exists(tokenId),
-            "ERC721URIStorage: URI query for nonexistent token"
-        );
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+        require(_exists(tokenId), "ERC721URIStorage: URI query for nonexistent token");
 
         string memory _tokenURI = _tokenURIs[tokenId];
         string memory base = _baseURI();
@@ -40,7 +29,7 @@ abstract contract URIStorage is ERC721Royalty, Ownable {
         }
         // If both are set, concatenate the baseURI and tokenURI (via abi.encodePacked).
         if (bytes(_tokenURI).length > 0) {
-            return string(_tokenURI);
+            return string(abi.encodePacked(base, _tokenURI));
         }
 
         return super.tokenURI(tokenId);
@@ -53,14 +42,8 @@ abstract contract URIStorage is ERC721Royalty, Ownable {
      *
      * - `tokenId` must exist.
      */
-    function _setTokenURI(uint256 tokenId, string memory _tokenURI)
-        internal
-        virtual
-    {
-        require(
-            _exists(tokenId),
-            "ERC721URIStorage: URI set of nonexistent token"
-        );
+    function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal virtual {
+        require(_exists(tokenId), "ERC721URIStorage: URI set of nonexistent token");
         _tokenURIs[tokenId] = _tokenURI;
     }
 

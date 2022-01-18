@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "./helpers/URIStorage.sol";
 // import "hardhat/console.sol";
-// import "./token/ERC721/extensions/ERC721Royalty.sol";
 
 uint256 constant halfTokensAmount = 5000000; // 13698 years
 uint256 constant secondsInDay = 60 * 60 * 24;
-uint256 constant dropPeriod = 20; //days
-string constant COLLECTION_NAME = "SAVE THE DATE";
-string constant TOKEN_NAME = "STD";
+uint256 constant dropPeriod = 14; //days
+string constant COLLECTION_NAME = "BIGDAY";
+string constant TOKEN_NAME = "BGD";
 
 // ERC721Royalty
-contract SaveTheDate is URIStorage, IERC721Receiver, Ownable {
+contract SaveTheDate is URIStorage, IERC721Receiver {
     event MetadataRequested(uint256 day, address receiver, uint256 price);
 
     uint256 public tokensBought;
     bool public isPublicSalesOpen;
+    mapping(uint256 => string[]) arts; // tokenId -> skinsId
+    mapping(uint256 => string[]) names; // tokenId -> skinsId
 
     constructor() ERC721(COLLECTION_NAME, TOKEN_NAME) {
         tokensBought = 0;
@@ -117,6 +117,15 @@ contract SaveTheDate is URIStorage, IERC721Receiver, Ownable {
         return this.onERC721Received.selector;
     }
 
+    // TODO payable
+    function addMetadata(uint256 tokenId, string changeId) public {
+        require(_isExits(tokenId), "No such token exitst");
+        require(
+            _isOwner(tokenId, msg.sender),
+            "Only token owner can change metadata"
+        );
+        arts[tokenId].push(changeId);
+    }
     // Royalties
     // function setTokenRoyalty(
     //     uint256 tokenId,
