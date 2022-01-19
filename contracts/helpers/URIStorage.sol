@@ -5,12 +5,13 @@ pragma solidity ^0.8.0;
 
 // import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "../openzeppelin/token/ERC721/extensions/ERC721Royalty.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+
+import "../openzeppelin/access/Ownable.sol";
 
 /**
  * @dev ERC721 token with storage based token URI management.
  */
-abstract contract URIStorage is ERC721Royalty, Ownable {
+abstract contract URIStorage is Ownable, ERC721Royalty {
     using Strings for uint256;
 
     // Optional mapping for token URIs

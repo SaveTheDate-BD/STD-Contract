@@ -2,25 +2,35 @@
 pragma solidity 0.8.0;
 
 import "./helpers/URIStorage.sol";
+import "./openzeppelin/access/Ownable.sol";
+import "./helpers/ArtManager.sol";
+// import "./openzeppelin/token/ERC721/extensions/ERC721Royalty.sol";
 // import "hardhat/console.sol";
 
 uint256 constant halfTokensAmount = 5000000; // 13698 years
 uint256 constant secondsInDay = 60 * 60 * 24;
+
 uint256 constant dropPeriod = 14; //days
+uint256 constant pastPrice = 10**17; //0.1Eth
+uint256 constant futurePrice = 12 * 10**18; //12Eth
+
 string constant COLLECTION_NAME = "BIGDAY";
 string constant TOKEN_NAME = "BGD";
 
 // ERC721Royalty
-contract SaveTheDate is URIStorage, IERC721Receiver {
-    event MetadataRequested(uint256 day, address receiver, uint256 price);
+contract SaveTheDate is Ownable, URIStorage, IERC721Receiver, ArtManager {
+    event TokenMinted(
+        uint256 day,
+        address receiver,
+        uint256 price,
+        bool isPrivate
+    );
 
-    uint256 public tokensBought;
     bool public isPublicSalesOpen;
     mapping(uint256 => string[]) arts; // tokenId -> skinsId
     mapping(uint256 => string[]) names; // tokenId -> skinsId
 
     constructor() ERC721(COLLECTION_NAME, TOKEN_NAME) {
-        tokensBought = 0;
         isPublicSalesOpen = false;
     }
 
@@ -59,25 +69,30 @@ contract SaveTheDate is URIStorage, IERC721Receiver {
         if (day >= currentDay) {
             uint256 diff = day - currentDay;
             if (diff < dropPeriod) {
-                return 100 * 100 * 10; //10 eths
+                return getFuturePrice();
             } else {
-                return getUsualPrice();
+                return getPastPrice();
             }
         } else {
-            return getUsualPrice();
+            return getPastPrice();
         }
     }
 
-    function getUsualPrice() internal view returns (uint256) {
-        return 100 + tokensBought * 10; // 0.01 eths +  0.001 x tokens
+    function getPastPrice() internal view returns (uint256) {
+        return pastPrice;
+    }
+
+    function getFuturePrice() internal view returns (uint256) {
+        return futurePrice;
     }
 
     function mint(uint256 day) public payable dateBounds(day) {
+        require(isPublicSalesOpen, "Public sales are closed now");
         uint256 price = getAvailability(day);
-        require(price > 0);
-        require(msg.value >= price);
-        emit MetadataRequested(day, msg.sender, price);
-        tokensBought = tokensBought + 1;
+        require(price > 0, "The token already taken");
+        require(msg.value >= price, "No enough funds");
+        _safeMint(msg.sender, day);
+        emit TokenMinted(day, msg.sender, price, false);
     }
 
     function burn(uint256 tokenId) public {
@@ -96,7 +111,8 @@ contract SaveTheDate is URIStorage, IERC721Receiver {
         if (receiver == address(0)) {
             receiver = msg.sender;
         }
-        emit MetadataRequested(day, receiver, price);
+        _safeMint(_receiver, day);
+        emit TokenMinted(day, receiver, price, true);
     }
 
     function finishMinting(
@@ -117,15 +133,6 @@ contract SaveTheDate is URIStorage, IERC721Receiver {
         return this.onERC721Received.selector;
     }
 
-    // TODO payable
-    function addMetadata(uint256 tokenId, string changeId) public {
-        require(_isExits(tokenId), "No such token exitst");
-        require(
-            _isOwner(tokenId, msg.sender),
-            "Only token owner can change metadata"
-        );
-        arts[tokenId].push(changeId);
-    }
     // Royalties
     // function setTokenRoyalty(
     //     uint256 tokenId,
