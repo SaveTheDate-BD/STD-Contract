@@ -8,6 +8,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy, get, log } = deployments;
   const { deployer } = await getNamedAccounts();
   const chainId = await getChainId();
+  const operatorAddress = "0x95ae5281ae8edf1722d2c4489dfee67f44233c01";
 
   //   let vrfCoordinatorAddress;
   //   let VisualizerContract;
@@ -72,6 +73,11 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   console.log("transactionHash is " + txHash);
   await fund_tx.wait(1);
   console.log("Funds [0.1] sent to contract ");
+
+  // transfer ownership
+  const tx = await contract.transferOwnership(operatorAddress);
+  let receipt = await tx.wait(1);
+  console.log(" >> ", receipt.events[0].topics);
 
   // log("Let's create an NFT now!");
   //   tx = await randomSVG.dropMint(7000, { gasLimit: 30000000 });
