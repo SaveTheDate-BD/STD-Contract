@@ -7,7 +7,7 @@ abstract contract TokenAsDate {
     uint256 private _priceBase = 10**16; // 0.01Eth
     uint256 private _futurePriceMultiplier = 100; // 10Eth
     uint256 private _basePriceStep = 10**15; // 0.001Eth 1 eth for 1000 purchases
-    uint32 private _basePriceStepMultiplier = 1;
+    uint32 private _basePriceStepMultiplier = 0;
     uint256 private _futureDay = 7; //days
 
     modifier dateBounds(uint256 day) {
@@ -16,7 +16,7 @@ abstract contract TokenAsDate {
     }
 
     function _getCurrentDay() internal view returns (uint256) {
-        return (block.timestamp / _halfTokensAmount) + _halfTokensAmount;
+        return (block.timestamp / _secondsInDay) + _halfTokensAmount;
     }
 
     function _getPastPrice() internal view returns (uint256) {

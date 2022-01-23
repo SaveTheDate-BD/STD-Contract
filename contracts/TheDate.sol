@@ -5,9 +5,9 @@ import "./MetaDataStorage.sol";
 import "./TokenAsDate.sol";
 import "./openzeppelin/access/Ownable.sol";
 import "./ArtManager.sol";
-import "./OpenseaExtension.sol";
+// import "./OpenseaExtension.sol";
 // import "./openzeppelin/token/ERC721/extensions/ERC721Royalty.sol";
-import "./openzeppelin/token/ERC721/IERC721Receiver.sol";
+// import "./openzeppelin/token/ERC721/IERC721Receiver.sol";
 import "./openzeppelin/token/ERC721/ERC721.sol";
 
 import "hardhat/console.sol";
@@ -16,6 +16,7 @@ string constant COLLECTION_NAME = "XXX XXX";
 string constant TOKEN_NAME = "XXX";
 address constant PROXY_REGISTERY_ADDRESS = address(0);
 uint256 constant SET_ART_PRICE = 2 * 10**16; //0.02
+string constant defaultMeta = '{"name":"BigDay [Minting in progress...]", "description":"Minting in progress. Usually it takes less than 20 minutes. Please, stand by."}';
 struct PrivateMintPayload {
     uint256 day;
     address fundAddress;
@@ -24,13 +25,13 @@ struct PrivateMintPayload {
 }
 
 // ERC721Royalty
-contract SaveTheDate is
+contract TheDate is
     Ownable,
-    MetaDataStorage,
+    // MetaDataStorage,
     IERC721Receiver,
     TokenAsDate,
     ArtManager,
-    OpenseaExtension,
+    // OpenseaExtension,
     ERC721
 {
     event TokenMinted(
@@ -41,15 +42,22 @@ contract SaveTheDate is
     );
 
     bool public isPublicSalesOpen = false;
+    MetaDataStorage MetaDataStorageAddress;
 
-    constructor()
+    constructor(address _mdStorage)
         ERC721(COLLECTION_NAME, TOKEN_NAME)
-        OpenseaExtension(PROXY_REGISTERY_ADDRESS)
-    {}
+    // OpenseaExtension(PROXY_REGISTERY_ADDRESS)
+    {
+        MetaDataStorageAddress = MetaDataStorage(_mdStorage);
+    }
 
     modifier isTokenOwner(uint256 tokenId) {
         require(ownerOf(tokenId) == owner(), "only owner");
         _;
+    }
+
+    function getCurrentDay() public view returns (uint256) {
+        return _getCurrentDay();
     }
 
     function getAvailability(uint256 day)
@@ -85,12 +93,13 @@ contract SaveTheDate is
         require(msg.value >= price, "No enough funds");
 
         _safeMint(msg.sender, day);
+        MetaDataStorageAddress.setTokenURI(day, defaultMeta);
         emit TokenMinted(day, msg.sender, price, false);
     }
 
     function burn(uint256 _tokenId) public virtual isTokenOwner(_tokenId) {
         require(_exists(_tokenId), "URI set of nonexistent token");
-        _clearTokenURI(_tokenId);
+        MetaDataStorageAddress.clearTokenURI(_tokenId);
         _burn(_tokenId);
     }
 
@@ -106,11 +115,7 @@ contract SaveTheDate is
         if (receiver == address(0)) {
             receiver = msg.sender;
         }
-        // TODO ADD FUND
-        // if (dayPayload.fundAddress != address(0)) {
-        //     _addFund
-        //
-        // TODO ADD ARTIST
+
         _safeMint(receiver, day);
         emit TokenMinted(day, receiver, price, true);
     }
@@ -137,7 +142,7 @@ contract SaveTheDate is
         require(_exists(_tokenId), "URI set of nonexistent token");
 
         //TODO add art collection
-        _setTokenURI(_tokenId, _tokenURI);
+        MetaDataStorageAddress.setTokenURI(_tokenId, _tokenURI);
     }
 
     function removeArt(
@@ -171,9 +176,9 @@ contract SaveTheDate is
     }
 
     // OpenSea
-    function setProxyRegistry(address proxyAddress) public onlyOwner {
-        _setProxyRegistry(proxyAddress);
-    }
+    // function setProxyRegistry(address proxyAddress) public onlyOwner {
+    //     _setProxyRegistry(proxyAddress);
+    // }
 
     // --
     // Overrides
@@ -210,7 +215,7 @@ contract SaveTheDate is
             _exists(_tokenId),
             "ERC721URIStorage: URI query for nonexistent token"
         );
-        string memory _uri = _getTokenURI(_tokenId);
+        string memory _uri = MetaDataStorageAddress.getTokenURI(_tokenId);
         if (bytes(_uri).length > 0) {
             return _uri;
         }
@@ -230,9 +235,15 @@ contract SaveTheDate is
         address owner,
         address collection,
         uint256 artTokenId,
-        string memory artUrl
+        string memory metadataUrl
     ) external onlyOwner {
-        _updateArt(tokenId, owner, collection, artTokenId, artUrl);
+        MetaDataStorageAddress.updateArt(
+            tokenId,
+            owner,
+            collection,
+            artTokenId,
+            metadataUrl
+        );
     }
 
     function _withdrawRoyalties() external {
@@ -242,23 +253,24 @@ contract SaveTheDate is
     /**
      * Override isApprovedForAll to whitelist user's OpenSea proxy accounts to enable gas-less listings.
      */
-    function isApprovedForAll(address owner, address operator)
-        public
-        view
-        virtual
-        override
-        returns (bool)
-    {
-        _isApprovedForAll(owner, operator);
-        return super.isApprovedForAll(owner, operator);
-    }
+    // function isApprovedForAll(address owner, address operator)
+    //     public
+    //     view
+    //     virtual
+    //     override
+    //     returns (bool)
+    // {
+    //     _isApprovedForAll(owner, operator);
+    //     return super.isApprovedForAll(owner, operator);
+    // }
 
     /**
      * This is used instead of msg.sender as transactions won't be sent by the original token owner, but by OpenSea.
      */
-    function _msgSender() internal view override returns (address sender) {
-        return __msgSender();
-    }
+    // function _msgSender() internal view override returns (address sender) {
+    //     return __msgSender();
+    // }
+    receive() external payable {}
 
     function supportsInterface(bytes4 interfaceId)
         public

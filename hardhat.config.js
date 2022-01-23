@@ -6,7 +6,7 @@ require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-truffle5");
 require("@nomiclabs/hardhat-etherscan");
 require("hardhat-deploy");
-require("hardhat-contract-sizer");
+// require("hardhat-contract-sizer");
 // require("hardhat-gas-reporter");
 
 require("dotenv").config();

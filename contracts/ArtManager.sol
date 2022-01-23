@@ -36,13 +36,13 @@ abstract contract ArtManager {
         address owner,
         address collection,
         uint256 artTokenId,
-        string memory artUrl
+        string memory metadataUrl
     ) internal {
         ArtInfo memory artInfo = ArtInfo({
             owner: owner,
             collection: collection,
             artTokenId: artTokenId,
-            url: artUrl
+            url: metadataUrl
         });
         _tokenArtHistory[tokenId].push(artInfo);
         _tokenActiveArt[tokenId] = _tokenArtHistory[tokenId].length - 1;
