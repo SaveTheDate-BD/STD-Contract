@@ -12,10 +12,8 @@ abstract contract MetaDataStorage {
         virtual
         returns (string memory)
     {
-        string memory _tokenURI = _tokenURIs[tokenId];
-
-        if (bytes(_tokenURI).length > 0) {
-            return string(_tokenURI);
+        if (bytes(_tokenURIs[tokenId]).length > 0) {
+            return string(_tokenURIs[tokenId]);
         }
         return "";
     }

@@ -18,6 +18,7 @@
     "ethereum-waffle": "^3.2.1",
     "ethers": "^5.0.24",
     "hardhat": "^2.6.1",
+    "hardhat-contract-sizer": "^2.4.0",
     "hardhat-deploy": "^0.7.0-beta.39",
     "hardhat-gas-reporter": "^1.0.6",
     "web3": "^1.2.9"

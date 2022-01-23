@@ -8,7 +8,6 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy, get, log } = deployments;
   const { deployer } = await getNamedAccounts();
   const chainId = await getChainId();
-  const operatorAddress = "0x95ae5281ae8edf1722d2c4489dfee67f44233c01";
 
   //   let vrfCoordinatorAddress;
   //   let VisualizerContract;

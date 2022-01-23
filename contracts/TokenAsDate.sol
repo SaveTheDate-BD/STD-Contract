@@ -31,12 +31,12 @@ abstract contract TokenAsDate {
         _futurePriceMultiplier = newValue;
     }
 
-    function _getFuturePrice() internal view returns (uint256) {
-        return _getPastPrice() * _futurePriceMultiplier;
-    }
-
     function setFutureDay(uint256 newValue) public virtual {
         _futureDay = newValue;
+    }
+
+    function _getFuturePrice() internal view returns (uint256) {
+        return _getPastPrice() * _futurePriceMultiplier;
     }
 
     function _getFutureDay() internal view returns (uint256) {

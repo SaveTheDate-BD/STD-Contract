@@ -6,6 +6,7 @@ require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-truffle5");
 require("@nomiclabs/hardhat-etherscan");
 require("hardhat-deploy");
+require("hardhat-contract-sizer");
 // require("hardhat-gas-reporter");
 
 require("dotenv").config();
@@ -45,6 +46,7 @@ module.exports = {
       // accounts: [PRIVATE_KEY],
       accounts: [PRIVATE_KEY],
       saveDeployments: true,
+
       // accounts: {
       //   mnemonic: MNEMONIC,
       // },
@@ -133,5 +135,12 @@ module.exports = {
   },
   mocha: {
     timeout: 100000,
+  },
+  contractSizer: {
+    alphaSort: false,
+    disambiguatePaths: false,
+    runOnCompile: true,
+    strict: true,
+    // only: [':ERC20$'],
   },
 };

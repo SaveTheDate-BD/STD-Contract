@@ -3,11 +3,10 @@ pragma solidity 0.8.0;
 
 import "./MetaDataStorage.sol";
 import "./TokenAsDate.sol";
-import "./PublicSales.sol";
 import "./openzeppelin/access/Ownable.sol";
 import "./ArtManager.sol";
 import "./OpenseaExtension.sol";
-import "./openzeppelin/token/ERC721/extensions/ERC721Royalty.sol";
+// import "./openzeppelin/token/ERC721/extensions/ERC721Royalty.sol";
 import "./openzeppelin/token/ERC721/IERC721Receiver.sol";
 import "./openzeppelin/token/ERC721/ERC721.sol";
 
@@ -30,7 +29,6 @@ contract SaveTheDate is
     MetaDataStorage,
     IERC721Receiver,
     TokenAsDate,
-    PublicSales,
     ArtManager,
     OpenseaExtension,
     ERC721
@@ -42,17 +40,15 @@ contract SaveTheDate is
         bool isPrivate
     );
 
-    bool public isPublicSalesOpen;
+    bool public isPublicSalesOpen = false;
 
     constructor()
         ERC721(COLLECTION_NAME, TOKEN_NAME)
         OpenseaExtension(PROXY_REGISTERY_ADDRESS)
-    {
-        isPublicSalesOpen = false;
-    }
+    {}
 
     modifier isTokenOwner(uint256 tokenId) {
-        require(ownerOf(tokenId) == owner(), "Allowed for token owner onlt");
+        require(ownerOf(tokenId) == owner(), "only owner");
         _;
     }
 
@@ -71,6 +67,14 @@ contract SaveTheDate is
         } else {
             return _getPastPrice();
         }
+    }
+
+    function setPrivateSales(bool newValue) external onlyOwner {
+        isPublicSalesOpen = newValue;
+    }
+
+    function isPrivateSalesOpened() public view returns (bool) {
+        return isPublicSalesOpen;
     }
 
     function mint(uint256 day) public payable dateBounds(day) {
@@ -127,24 +131,26 @@ contract SaveTheDate is
     function setTokenURI(
         uint256 _tokenId,
         string memory _tokenURI,
-        address artAddress
-    ) public virtual onlyOwner {
+        address collection,
+        uint256 artTokenId
+    ) external virtual onlyOwner {
         require(_exists(_tokenId), "URI set of nonexistent token");
 
-        super._setTokenURI(_tokenId, _tokenURI);
+        //TODO add art collection
+        _setTokenURI(_tokenId, _tokenURI);
     }
 
     function removeArt(
         uint256 tokenId,
         address collection,
-        string memory artId
+        uint256 artId
     ) public onlyOwner {
         _removeArt(tokenId, collection, artId);
     }
 
-    function getCurrentArt(uint256 tokenId) public {
-        _getCurrentArt(tokenId);
-    }
+    // function getCurrentArt(uint256 tokenId) public {
+    //     _getCurrentArt(tokenId);
+    // }
 
     // function finishMinting(
     //     address receiver,
@@ -172,13 +178,9 @@ contract SaveTheDate is
     // --
     // Overrides
     // --
-    function setPrivateSales(bool newValue) public virtual override onlyOwner {
-        super.setPrivateSales(newValue);
-    }
 
     function setBasePriceStepMultiplier(uint256 newValue)
         public
-        virtual
         override
         onlyOwner
     {
@@ -187,7 +189,6 @@ contract SaveTheDate is
 
     function setFuturePriceMultiplier(uint256 newValue)
         public
-        virtual
         override
         onlyOwner
     {
@@ -218,33 +219,24 @@ contract SaveTheDate is
 
     //
     // Request art change by user
-    function setArt(uint256 tokenId, string memory changeId) public payable {
+    function setArt(uint256 tokenId, string memory changeId) external payable {
         require(msg.value >= SET_ART_PRICE, "not funds enough");
         _setArt(tokenId, changeId, msg.sender);
     }
 
+    // updating metadata by server
     function updateArt(
         uint256 tokenId,
-        string memory artId,
-        address publisher,
         address owner,
         address collection,
         uint256 artTokenId,
         string memory artUrl
-    ) public onlyOwner {
-        _updateArt(
-            tokenId,
-            artId,
-            publisher,
-            owner,
-            collection,
-            artTokenId,
-            artUrl
-        );
+    ) external onlyOwner {
+        _updateArt(tokenId, owner, collection, artTokenId, artUrl);
     }
 
-    function withdrawRoyalties() public {
-        _withdrawRoyalties();
+    function _withdrawRoyalties() external {
+        emit RoyaltiesRequested({requester: msg.sender});
     }
 
     /**
@@ -268,14 +260,6 @@ contract SaveTheDate is
         return __msgSender();
     }
 
-    function royaltyInfo(uint256 tokenId, uint256 salePrice)
-        public
-        view
-        returns (address receiver, uint256 royaltyAmount)
-    {
-        return _royaltyInfo(tokenId, salePrice);
-    }
-
     function supportsInterface(bytes4 interfaceId)
         public
         view
@@ -286,7 +270,7 @@ contract SaveTheDate is
         return
             interfaceId == type(IERC721).interfaceId ||
             interfaceId == type(IERC721Metadata).interfaceId ||
-            interfaceId == type(IERC2981).interfaceId ||
+            // interfaceId == type(IERC2981).interfaceId ||
             super.supportsInterface(interfaceId);
         // if (interfaceId == LibRoyaltiesV2._INTERFACE_ID_ROYALTIES) {
         //     return true;
