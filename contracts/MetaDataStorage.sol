@@ -10,7 +10,7 @@ contract MetaDataStorage is Ownable, ArtManager {
     mapping(uint256 => string) private _tokenURIs;
 
     function getTokenURI(uint256 tokenId)
-        external
+        internal
         view
         returns (string memory)
     {
@@ -35,9 +35,33 @@ contract MetaDataStorage is Ownable, ArtManager {
         _updateArt(tokenId, owner, collection, artTokenId, metaUrl);
     }
 
+    function removeArt(
+        uint256 tokenId,
+        address collection,
+        uint256 artId
+    ) external {
+        _removeArt(tokenId, collection, artId);
+    }
+
+    function setArt(
+        uint256 tokenId,
+        string memory changeId,
+        address publisher
+    ) external {
+        _setArt(tokenId, changeId, publisher);
+    }
+
     function clearTokenURI(uint256 tokenId) external {
         if (bytes(_tokenURIs[tokenId]).length != 0) {
             delete _tokenURIs[tokenId];
         }
+    }
+
+    function transferOwnership(address newOwner) public override onlyOwner {
+        require(
+            newOwner != address(0),
+            "Ownable: new owner is the zero address"
+        );
+        super.transferOwnership(newOwner);
     }
 }

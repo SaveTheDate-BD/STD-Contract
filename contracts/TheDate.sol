@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.0;
+pragma solidity 0.8.9;
 
 import "./MetaDataStorage.sol";
 import "./TokenAsDate.sol";
@@ -17,6 +17,7 @@ string constant TOKEN_NAME = "XXX";
 address constant PROXY_REGISTERY_ADDRESS = address(0);
 uint256 constant SET_ART_PRICE = 2 * 10**16; //0.02
 string constant defaultMeta = '{"name":"BigDay [Minting in progress...]", "description":"Minting in progress. Usually it takes less than 20 minutes. Please, stand by."}';
+
 struct PrivateMintPayload {
     uint256 day;
     address fundAddress;
@@ -25,15 +26,7 @@ struct PrivateMintPayload {
 }
 
 // ERC721Royalty
-contract TheDate is
-    Ownable,
-    // MetaDataStorage,
-    IERC721Receiver,
-    TokenAsDate,
-    ArtManager,
-    // OpenseaExtension,
-    ERC721
-{
+contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
     event TokenMinted(
         uint256 day,
         address receiver,
@@ -41,14 +34,17 @@ contract TheDate is
         bool isPrivate
     );
 
+    event RoyaltiesRequested(address requester);
     bool public isPublicSalesOpen = false;
+    string _contractMetadataURI;
     MetaDataStorage MetaDataStorageAddress;
 
-    constructor(address _mdStorage)
+    constructor(address _mdStorage, _metadataURI)
         ERC721(COLLECTION_NAME, TOKEN_NAME)
     // OpenseaExtension(PROXY_REGISTERY_ADDRESS)
     {
         MetaDataStorageAddress = MetaDataStorage(_mdStorage);
+        _contractMetadataURI = _metadataURI;
     }
 
     modifier isTokenOwner(uint256 tokenId) {
@@ -77,16 +73,16 @@ contract TheDate is
         }
     }
 
-    function setPrivateSales(bool newValue) external onlyOwner {
+    function setPublicSales(bool newValue) external onlyOwner {
         isPublicSalesOpen = newValue;
     }
 
-    function isPrivateSalesOpened() public view returns (bool) {
+    function _isPuplicSalesOpened() private view returns (bool) {
         return isPublicSalesOpen;
     }
 
     function mint(uint256 day) public payable dateBounds(day) {
-        require(isPrivateSalesOpened(), "Public sales are closed now");
+        require(_isPuplicSalesOpened(), "Public sales are closed now");
 
         uint256 price = getAvailability(day);
         require(price > 0, "The token already taken");
@@ -150,7 +146,7 @@ contract TheDate is
         address collection,
         uint256 artId
     ) public onlyOwner {
-        _removeArt(tokenId, collection, artId);
+        MetaDataStorageAddress.removeArt(tokenId, collection, artId);
     }
 
     // function getCurrentArt(uint256 tokenId) public {
@@ -226,7 +222,7 @@ contract TheDate is
     // Request art change by user
     function setArt(uint256 tokenId, string memory changeId) external payable {
         require(msg.value >= SET_ART_PRICE, "not funds enough");
-        _setArt(tokenId, changeId, msg.sender);
+        MetaDataStorageAddress.setArt(tokenId, changeId, msg.sender);
     }
 
     // updating metadata by server
@@ -237,6 +233,10 @@ contract TheDate is
         uint256 artTokenId,
         string memory metadataUrl
     ) external onlyOwner {
+        require(
+            _exists(tokenId),
+            "ERC721URIStorage: URI query for nonexistent token"
+        );
         MetaDataStorageAddress.updateArt(
             tokenId,
             owner,
@@ -271,6 +271,14 @@ contract TheDate is
     //     return __msgSender();
     // }
     receive() external payable {}
+
+    function setContractURI(string memory newValue) public view onlyOwner {
+        _contractMetadataURI = newValue;
+    }
+
+    function contractURI() public view returns (string memory) {
+        return _contractMetadataURI;
+    }
 
     function supportsInterface(bytes4 interfaceId)
         public

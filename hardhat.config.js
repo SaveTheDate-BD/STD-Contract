@@ -7,7 +7,7 @@ require("@nomiclabs/hardhat-truffle5");
 require("@nomiclabs/hardhat-etherscan");
 require("hardhat-deploy");
 // require("hardhat-contract-sizer");
-// require("hardhat-gas-reporter");
+require("hardhat-gas-reporter");
 
 require("dotenv").config();
 
@@ -18,6 +18,9 @@ const MAINNET_RPC_URL =
 const RINKEBY_RPC_URL =
   process.env.RINKEBY_RPC_URL ||
   "https://eth-rinkeby.alchemyapi.io/v2/your-api-key";
+const ROPSTEN_RPC_URL =
+  process.env.ROPSTEN_RPC_URL ||
+  "https://eth-ropsten.alchemyapi.io/v2/your-api-key";
 const KOVAN_RPC_URL =
   process.env.KOVAN_RPC_URL ||
   "https://eth-kovan.alchemyapi.io/v2/your-api-key";
@@ -28,10 +31,10 @@ const ETHERSCAN_API_KEY =
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "your private key";
 
 module.exports = {
-  defaultNetwork: "hardhat",
+  defaultNetwork: "rinkeby",
   networks: {
     hardhat: {
-      chainId: 4,
+      chainId: 3,
       // // If you want to do some forking, uncomment this
       // forking: {
       //   url: MAINNET_RPC_URL
@@ -58,6 +61,15 @@ module.exports = {
       //   mnemonic: MNEMONIC,
       // },
       saveDeployments: true,
+    },
+    ropsten: {
+      url: ROPSTEN_RPC_URL,
+      accounts: [PRIVATE_KEY],
+      // accounts: [PRIVATE_KEY],
+      saveDeployments: true,
+      // accounts: {
+      //   mnemonic: MNEMONIC,
+      // },
     },
     rinkeby: {
       url: RINKEBY_RPC_URL,

@@ -36,6 +36,7 @@
     "eslint": "^7.22.0",
     "eth-gas-reporter": "^0.2.23",
     "mocha-skip-if": "^0.0.3",
+    "solidity-linked-list": "^5.1.0",
     "transform": "^1.1.2"
   },
   "mocha": {
