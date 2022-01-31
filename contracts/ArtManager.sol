@@ -1,17 +1,10 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.7;
+import "./openzeppelin/token/ERC721/ERC721.sol";
 
 abstract contract ArtManager {
     constructor() {}
-
-    event MetadataUpdateRequested(
-        uint256 tokenId,
-        string changeId,
-        address publisher
-    );
-
-    event RoyaltiesRequested(address requester);
 
     struct ArtInfo {
         address owner;
@@ -22,30 +15,42 @@ abstract contract ArtManager {
 
     mapping(uint256 => ArtInfo[]) private _tokenArtHistory;
     mapping(uint256 => uint256) private _tokenActiveArt;
+    event TestTest(uint256 indx);
 
     function _setArt(
         uint256 tokenId,
-        string memory changeId,
-        address publisher
+        address collection,
+        uint256 artId
     ) internal {
-        emit MetadataUpdateRequested(tokenId, changeId, publisher);
+        ERC721 collContract = ERC721(collection);
+        address _owner = collContract.ownerOf(tokenId);
+        ArtInfo memory artInfo = ArtInfo({
+            owner: _owner,
+            collection: collection,
+            artTokenId: artId,
+            url: ""
+        });
+        emit TestTest(_tokenArtHistory[tokenId].length);
+        _tokenArtHistory[tokenId].push(artInfo);
+        emit TestTest(_tokenArtHistory[tokenId].length);
+        _tokenActiveArt[tokenId] = _tokenArtHistory[tokenId].length - 1;
     }
 
-    function _updateArt(
+    function _updateMetadata(
         uint256 tokenId,
-        address owner,
-        address collection,
-        uint256 artTokenId,
-        string memory metadataUrl
+        string memory metadataUrl,
+        bool force
     ) internal {
-        ArtInfo memory artInfo = ArtInfo({
-            owner: owner,
-            collection: collection,
-            artTokenId: artTokenId,
-            url: metadataUrl
-        });
-        _tokenArtHistory[tokenId].push(artInfo);
-        _tokenActiveArt[tokenId] = _tokenArtHistory[tokenId].length - 1;
+        require(
+            _tokenArtHistory[tokenId].length > 0,
+            "history should not be empty"
+        );
+        string memory url = _tokenArtHistory[tokenId][_tokenActiveArt[tokenId]]
+            .url;
+        // rewrite protection
+        require(bytes(url).length == 0, "Metadata is immutable");
+        // write
+        _tokenArtHistory[tokenId][_tokenActiveArt[tokenId]].url = metadataUrl;
     }
 
     function _removeArt(
@@ -84,35 +89,21 @@ abstract contract ArtManager {
         return _tokenActiveArt[tokenId];
     }
 
-    function royaltyInfo(uint256 tokenId, uint256 salePrice)
-        external
-        view
-        returns (address receiver, uint256 royaltyAmount)
+    function _changeActiveArt(uint256 tokenId, uint256 newIndex)
+        internal
+        returns (string memory)
     {
-        if (
-            _tokenArtHistory[tokenId][_tokenActiveArt[tokenId]].owner ==
-            address(0)
-        ) {
-            receiver = address(this);
-        } else {
-            receiver = _tokenArtHistory[tokenId][_tokenActiveArt[tokenId]]
-                .owner;
-        }
-        return (receiver, salePrice / 10000); //10%
+        require(
+            _tokenArtHistory[tokenId].length > 0,
+            "history should not be empty"
+        );
+        require(
+            newIndex < _tokenArtHistory[tokenId].length && newIndex >= 0,
+            "index outbounds"
+        );
+        _tokenActiveArt[tokenId] = newIndex;
+        return _tokenArtHistory[tokenId][_tokenActiveArt[tokenId]].url;
     }
-
-    // --
-    // HELPERS
-    // --
-    // function _compareStrings(string memory a, string memory b)
-    //     internal
-    //     pure
-    //     returns (bool)
-    // {
-    //     bool result = keccak256(abi.encodePacked(a)) ==
-    //         keccak256(abi.encodePacked(b));
-    //     return result;
-    // }
 
     function _removeElementFromArray(uint256 index, ArtInfo[] storage array)
         internal

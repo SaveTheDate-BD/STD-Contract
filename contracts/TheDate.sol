@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.9;
+pragma solidity 0.8.7;
 
 import "./MetaDataStorage.sol";
 import "./TokenAsDate.sol";
 import "./openzeppelin/access/Ownable.sol";
-import "./ArtManager.sol";
-// import "./OpenseaExtension.sol";
-// import "./openzeppelin/token/ERC721/extensions/ERC721Royalty.sol";
-// import "./openzeppelin/token/ERC721/IERC721Receiver.sol";
 import "./openzeppelin/token/ERC721/ERC721.sol";
 
 import "hardhat/console.sol";
@@ -15,8 +11,8 @@ import "hardhat/console.sol";
 string constant COLLECTION_NAME = "XXX XXX";
 string constant TOKEN_NAME = "XXX";
 address constant PROXY_REGISTERY_ADDRESS = address(0);
-uint256 constant SET_ART_PRICE = 2 * 10**16; //0.02
-string constant defaultMeta = '{"name":"BigDay [Minting in progress...]", "description":"Minting in progress. Usually it takes less than 20 minutes. Please, stand by."}';
+uint256 constant SET_ART_PRICE = 1 * 10**16; //0.02
+uint256 constant SET_ART_PRICE_OWNER = 5 * 10**17; //0.5
 
 struct PrivateMintPayload {
     uint256 day;
@@ -33,13 +29,14 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
         uint256 price,
         bool isPrivate
     );
-
+    event MetadataSet(uint256 tokenId, string URI);
+    event ArtUpdateRequested(uint256 tokenId);
     event RoyaltiesRequested(address requester);
-    bool public isPublicSalesOpen = false;
+    bool public _isPublicSalesOpen = false;
     string _contractMetadataURI;
     MetaDataStorage MetaDataStorageAddress;
 
-    constructor(address _mdStorage, _metadataURI)
+    constructor(address _mdStorage, string memory _metadataURI)
         ERC721(COLLECTION_NAME, TOKEN_NAME)
     // OpenseaExtension(PROXY_REGISTERY_ADDRESS)
     {
@@ -50,10 +47,6 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
     modifier isTokenOwner(uint256 tokenId) {
         require(ownerOf(tokenId) == owner(), "only owner");
         _;
-    }
-
-    function getCurrentDay() public view returns (uint256) {
-        return _getCurrentDay();
     }
 
     function getAvailability(uint256 day)
@@ -74,22 +67,23 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
     }
 
     function setPublicSales(bool newValue) external onlyOwner {
-        isPublicSalesOpen = newValue;
+        _isPublicSalesOpen = newValue;
     }
 
-    function _isPuplicSalesOpened() private view returns (bool) {
-        return isPublicSalesOpen;
-    }
+    //
+    // MINT AND BURN
+    //
 
     function mint(uint256 day) public payable dateBounds(day) {
-        require(_isPuplicSalesOpened(), "Public sales are closed now");
-
+        require(_isPublicSalesOpen, "Public sales are closed now");
+        console.log("MINT42");
         uint256 price = getAvailability(day);
         require(price > 0, "The token already taken");
         require(msg.value >= price, "No enough funds");
 
         _safeMint(msg.sender, day);
-        MetaDataStorageAddress.setTokenURI(day, defaultMeta);
+        MetaDataStorageAddress.setArt(day, address(this), day);
+        MetaDataStorageAddress.setTokenURI(day, "");
         emit TokenMinted(day, msg.sender, price, false);
     }
 
@@ -129,16 +123,36 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
         return res;
     }
 
-    function setTokenURI(
-        uint256 _tokenId,
-        string memory _tokenURI,
-        address collection,
-        uint256 artTokenId
-    ) external virtual onlyOwner {
-        require(_exists(_tokenId), "URI set of nonexistent token");
+    //
+    // ART AND META
+    //
+    function getArtPrice(address collection, uint256 tokenId)
+        public
+        view
+        returns (uint256)
+    {
+        ERC721 collContract = ERC721(collection);
+        address _owner = collContract.ownerOf(tokenId);
+        if (_owner == msg.sender) {
+            return SET_ART_PRICE_OWNER;
+        } else {
+            return SET_ART_PRICE;
+        }
+    }
 
-        //TODO add art collection
-        MetaDataStorageAddress.setTokenURI(_tokenId, _tokenURI);
+    //
+    // Request art change by user
+    function setArt(
+        uint256 tokenId,
+        address collection,
+        uint256 artId
+    ) external payable {
+        require(
+            msg.value >= getArtPrice(collection, tokenId),
+            "not funds enough"
+        );
+        MetaDataStorageAddress.setArt(tokenId, collection, artId);
+        emit ArtUpdateRequested(tokenId);
     }
 
     function removeArt(
@@ -149,32 +163,40 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
         MetaDataStorageAddress.removeArt(tokenId, collection, artId);
     }
 
-    // function getCurrentArt(uint256 tokenId) public {
-    //     _getCurrentArt(tokenId);
-    // }
-
-    // function finishMinting(
-    //     address receiver,
-    //     uint256 tokenId,
-    //     string memory metadataURI
-    // ) public payable onlyOwner {
-    //     _safeMint(receiver, tokenId);
-    //     _setTokenURI(tokenId, metadataURI);
-    // }
-
-    function onERC721Received(
-        address,
-        address,
-        uint256,
-        bytes calldata
-    ) external pure override returns (bytes4) {
-        return this.onERC721Received.selector;
+    // updating metadata by server
+    function updateMetadata(
+        uint256 tokenId,
+        string memory metadataUrl,
+        bool force
+    ) external onlyOwner {
+        require(
+            _exists(tokenId),
+            "ERC721URIStorage: URI query for nonexistent token"
+        );
+        console.log("UMD1");
+        MetaDataStorageAddress.updateMetadata(tokenId, metadataUrl, force);
+        emit MetadataSet(tokenId, metadataUrl);
+        console.log("UMD2");
     }
 
-    // OpenSea
-    // function setProxyRegistry(address proxyAddress) public onlyOwner {
-    //     _setProxyRegistry(proxyAddress);
-    // }
+    function setTokenURI(uint256 _tokenId, string memory _tokenURI)
+        external
+        virtual
+        onlyOwner
+    {
+        require(_exists(_tokenId), "URI set of nonexistent token");
+
+        //TODO add art collection
+        MetaDataStorageAddress.setTokenURI(_tokenId, _tokenURI);
+    }
+
+    function setDefaultMetadata(string memory newDMD) external onlyOwner {
+        MetaDataStorageAddress.setDefaultMetadata(newDMD);
+    }
+
+    function withdrawRoyalties() external {
+        emit RoyaltiesRequested({requester: msg.sender});
+    }
 
     // --
     // Overrides
@@ -219,36 +241,31 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
     }
 
     //
-    // Request art change by user
-    function setArt(uint256 tokenId, string memory changeId) external payable {
-        require(msg.value >= SET_ART_PRICE, "not funds enough");
-        MetaDataStorageAddress.setArt(tokenId, changeId, msg.sender);
+    //
+    //
+
+    function setContractURI(string memory newValue) public onlyOwner {
+        _contractMetadataURI = newValue;
     }
 
-    // updating metadata by server
-    function updateArt(
-        uint256 tokenId,
-        address owner,
-        address collection,
-        uint256 artTokenId,
-        string memory metadataUrl
-    ) external onlyOwner {
-        require(
-            _exists(tokenId),
-            "ERC721URIStorage: URI query for nonexistent token"
-        );
-        MetaDataStorageAddress.updateArt(
-            tokenId,
-            owner,
-            collection,
-            artTokenId,
-            metadataUrl
-        );
+    function contractURI() public view returns (string memory) {
+        return _contractMetadataURI;
     }
 
-    function _withdrawRoyalties() external {
-        emit RoyaltiesRequested({requester: msg.sender});
+    receive() external payable {}
+
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes calldata
+    ) external pure override returns (bytes4) {
+        return this.onERC721Received.selector;
     }
+
+    //
+    // OPENSEA
+    //
 
     /**
      * Override isApprovedForAll to whitelist user's OpenSea proxy accounts to enable gas-less listings.
@@ -270,15 +287,14 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
     // function _msgSender() internal view override returns (address sender) {
     //     return __msgSender();
     // }
-    receive() external payable {}
+    // OpenSea
+    // function setProxyRegistry(address proxyAddress) public onlyOwner {
+    //     _setProxyRegistry(proxyAddress);
+    // }
 
-    function setContractURI(string memory newValue) public view onlyOwner {
-        _contractMetadataURI = newValue;
-    }
-
-    function contractURI() public view returns (string memory) {
-        return _contractMetadataURI;
-    }
+    //
+    // SUPPORT INTERFACE
+    //
 
     function supportsInterface(bytes4 interfaceId)
         public

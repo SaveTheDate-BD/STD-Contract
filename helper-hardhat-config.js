@@ -72,7 +72,7 @@ const networkConfig = {
   },
 };
 
-const developmentChains = ["hardhat", "localhost"];
+const developmentChains = ["hardhat", "localhost", "ganache"];
 
 const getNetworkIdFromName = async (networkIdName) => {
   for (const id in networkConfig) {

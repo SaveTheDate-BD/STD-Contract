@@ -10,14 +10,17 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const chainId = await getChainId();
   const networkName = networkConfig[chainId]["name"];
 
-  const operatorAddress = "0x5418469B80A56631EBbED3F95b20Bf77CdB74Ccb";
+  let operatorAddress = "0x5418469B80A56631EBbED3F95b20Bf77CdB74Ccb";
   const gasLimit = 3000000;
 
   let args = [];
   log(`Network: ${chainId}`);
   log(`Deployer: ${deployer}`);
   log("----------------------------------------------------");
-
+  if (chainId === "1337") {
+    console.log("- Dev operator set -");
+    operatorAddress = "0x7E1AaC504bc10C21C2312E40cD45B65C7c3Cac52";
+  }
   const accounts = await ethers.getSigners();
   const signer = accounts[0];
 

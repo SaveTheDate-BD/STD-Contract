@@ -6,6 +6,7 @@ require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-truffle5");
 require("@nomiclabs/hardhat-etherscan");
 require("hardhat-deploy");
+require("hardhat-tracer");
 // require("hardhat-contract-sizer");
 require("hardhat-gas-reporter");
 
@@ -31,10 +32,11 @@ const ETHERSCAN_API_KEY =
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "your private key";
 
 module.exports = {
-  defaultNetwork: "rinkeby",
+  defaultNetwork: "ganache",
   networks: {
     hardhat: {
-      chainId: 3,
+      chainId: 1337,
+      saveDeployments: true,
       // // If you want to do some forking, uncomment this
       // forking: {
       //   url: MAINNET_RPC_URL
@@ -45,6 +47,8 @@ module.exports = {
       // },
     },
     localhost: {
+      // chainId: 1337,
+      // url: "http://localhost:7545",
       // url: KOVAN_RPC_URL,
       // accounts: [PRIVATE_KEY],
       accounts: [PRIVATE_KEY],
@@ -129,7 +133,7 @@ module.exports = {
   solidity: {
     compilers: [
       {
-        version: "0.8.9",
+        version: "0.8.7",
       },
       {
         version: "0.8.0",

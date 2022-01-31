@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts v4.4.1 (metatx/ERC2771Context.sol)
 
-pragma solidity ^0.8.9;
+pragma solidity 0.8.7;
 
 import "../utils/Context.sol";
 
@@ -10,18 +10,29 @@ import "../utils/Context.sol";
  */
 abstract contract ERC2771Context is Context {
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
-    address private immutable _trustedForwarder;
+    address private _trustedForwarder;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address trustedForwarder) {
         _trustedForwarder = trustedForwarder;
     }
 
-    function isTrustedForwarder(address forwarder) public view virtual returns (bool) {
+    function isTrustedForwarder(address forwarder)
+        public
+        view
+        virtual
+        returns (bool)
+    {
         return forwarder == _trustedForwarder;
     }
 
-    function _msgSender() internal view virtual override returns (address sender) {
+    function _msgSender()
+        internal
+        view
+        virtual
+        override
+        returns (address sender)
+    {
         if (isTrustedForwarder(msg.sender)) {
             // The assembly code is more direct than the Solidity version using `abi.decode`.
             assembly {
@@ -32,7 +43,13 @@ abstract contract ERC2771Context is Context {
         }
     }
 
-    function _msgData() internal view virtual override returns (bytes calldata) {
+    function _msgData()
+        internal
+        view
+        virtual
+        override
+        returns (bytes calldata)
+    {
         if (isTrustedForwarder(msg.sender)) {
             return msg.data[:msg.data.length - 20];
         } else {

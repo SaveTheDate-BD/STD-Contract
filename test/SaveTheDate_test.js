@@ -9,6 +9,7 @@ const {
   networkConfig,
   developmentChains,
 } = require("../helper-hardhat-config");
+const { contracts_build_directory } = require("../truffle-config");
 
 const todayIsDayFromEpoch = Math.floor(
   new Date().getTime() / (1000 * 60 * 60 * 24)
@@ -24,18 +25,23 @@ skip
     let std;
     let signer;
     before(async () => {
+      console.log("A1");
       const accounts = await hre.ethers.getSigners();
       signer = accounts[0];
       await deployments.fixture(["all"]);
+      console.log("A2");
       const STD = await deployments.get("TheDate");
       std = await ethers.getContractAt("TheDate", STD.address);
+      const signed = std.connect(signer);
+      await std.setPublicSales(true);
+      console.log("A3");
     });
 
-    it("should return the correct current day", async () => {
-      cd = await std.getCurrentDay();
-      console.log("__ price: ", cd.toString());
-      expect(cd.toString()).to.equal(String(currentDay)); //1
-    });
+    // it("should return the correct current day", async () => {
+    //   cd = await std.getCurrentDay();
+    //   console.log("__ price: ", cd.toString());
+    //   expect(cd.toString()).to.equal(String(currentDay)); //1
+    // });
 
     it("should return the correct Price for high", async () => {
       priceOfTheDay = await std.getAvailability(expensiveDay);
@@ -62,22 +68,20 @@ skip
     });
 
     it("update meta", async () => {
-      let meta = await std.updateArt(
+      let meta = await std.updateMetadata(
         cheapDay,
-        "0xEB1e2c19bd833b7f33F9bd0325B74802DF187935",
-        "0x4FBA74788215712319aB134e2a4478db2e5Cee0A",
-        42,
-        "https://www.ya.ru"
+        "https://www.ya42.ru",
+        false
       );
       console.log("meta updated");
-      // await meta.wait(1);
+      await meta.wait(1);
 
       expect(true).to.be.true;
     });
 
     it("get meta updated", async () => {
       let meta = await std.tokenURI(cheapDay);
-      console.log("meta updated", meta);
+      console.log("meta updated:", meta);
       expect(true).to.be.true;
     });
 

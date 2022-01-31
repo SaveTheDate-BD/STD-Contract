@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.0;
+pragma solidity 0.8.7;
 
 abstract contract TokenAsDate {
     uint256 private constant _halfTokensAmount = 5000000; // 13698 years
