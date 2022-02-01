@@ -3,6 +3,7 @@ let {
   getNetworkIdFromName,
 } = require("../helper-hardhat-config");
 const fs = require("fs");
+const { contracts_build_directory } = require("../truffle-config");
 // module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {};
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy, get, log } = deployments;
@@ -16,13 +17,14 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   let args = [];
   log(`Network: ${chainId}`);
   log(`Deployer: ${deployer}`);
+  console.log("chainId", chainId);
   log("----------------------------------------------------");
-  if (chainId === "1337") {
-    console.log("- Dev operator set -");
-    operatorAddress = "0x7E1AaC504bc10C21C2312E40cD45B65C7c3Cac52";
-  }
   const accounts = await ethers.getSigners();
   const signer = accounts[0];
+  if (chainId === "31337") {
+    console.log("- Dev operator set -");
+    operatorAddress = signer.address;
+  }
 
   const MDSContract = await deploy("MetaDataStorage", {
     from: deployer,

@@ -15,7 +15,6 @@ abstract contract ArtManager {
 
     mapping(uint256 => ArtInfo[]) private _tokenArtHistory;
     mapping(uint256 => uint256) private _tokenActiveArt;
-    event TestTest(uint256 indx);
 
     function _setArt(
         uint256 tokenId,
@@ -23,24 +22,20 @@ abstract contract ArtManager {
         uint256 artId
     ) internal {
         ERC721 collContract = ERC721(collection);
-        address _owner = collContract.ownerOf(tokenId);
+        address _owner = collContract.ownerOf(artId);
         ArtInfo memory artInfo = ArtInfo({
             owner: _owner,
             collection: collection,
             artTokenId: artId,
             url: ""
         });
-        emit TestTest(_tokenArtHistory[tokenId].length);
         _tokenArtHistory[tokenId].push(artInfo);
-        emit TestTest(_tokenArtHistory[tokenId].length);
         _tokenActiveArt[tokenId] = _tokenArtHistory[tokenId].length - 1;
     }
 
-    function _updateMetadata(
-        uint256 tokenId,
-        string memory metadataUrl,
-        bool force
-    ) internal {
+    function _updateMetadata(uint256 tokenId, string memory metadataUrl)
+        internal
+    {
         require(
             _tokenArtHistory[tokenId].length > 0,
             "history should not be empty"
@@ -87,6 +82,14 @@ abstract contract ArtManager {
 
     function getCurrentArt(uint256 tokenId) external view returns (uint256) {
         return _tokenActiveArt[tokenId];
+    }
+
+    function getArtHistory(uint256 tokenId)
+        external
+        view
+        returns (ArtInfo[] memory)
+    {
+        return _tokenArtHistory[tokenId];
     }
 
     function _changeActiveArt(uint256 tokenId, uint256 newIndex)

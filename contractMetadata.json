@@ -3,6 +3,6 @@
   "description": "One day. One NFT. One owner.",
   "image": "https://bigday.art/collection_cover.jpg",
   "external_link": "https://bigday.art",
-  "seller_fee_basis_points": 1000, # Indicates a 1% seller fee.
-  "fee_recipient": "0xA97F337c39cccE66adfeCB2BF99C1DdC54C2D721" # Where seller fees will be paid to.
+  "seller_fee_basis_points": 1000, 
+  "fee_recipient": "0xA97F337c39cccE66adfeCB2BF99C1DdC54C2D721"
 }

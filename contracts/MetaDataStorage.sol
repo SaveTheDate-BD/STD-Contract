@@ -19,13 +19,11 @@ contract MetaDataStorage is Ownable, ArtManager {
         return _tokenURIs[tokenId];
     }
 
-    function updateMetadata(
-        uint256 tokenId,
-        string memory metadataUrl,
-        bool force
-    ) external onlyOwner {
-        console.log("UM999");
-        _updateMetadata(tokenId, metadataUrl, force);
+    function updateMetadata(uint256 tokenId, string memory metadataUrl)
+        external
+        onlyOwner
+    {
+        _updateMetadata(tokenId, metadataUrl);
         _tokenURIs[tokenId] = metadataUrl;
     }
 

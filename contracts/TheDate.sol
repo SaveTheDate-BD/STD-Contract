@@ -30,9 +30,13 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
         bool isPrivate
     );
     event MetadataSet(uint256 tokenId, string URI);
-    event ArtUpdateRequested(uint256 tokenId);
+    event ArtUpdateRequested(
+        uint256 tokenId,
+        address collection,
+        uint256 artId
+    );
     event RoyaltiesRequested(address requester);
-    bool public _isPublicSalesOpen = false;
+    bool public isPublicSalesOpen = false;
     string _contractMetadataURI;
     MetaDataStorage MetaDataStorageAddress;
 
@@ -40,6 +44,7 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
         ERC721(COLLECTION_NAME, TOKEN_NAME)
     // OpenseaExtension(PROXY_REGISTERY_ADDRESS)
     {
+        console.log("TEST");
         MetaDataStorageAddress = MetaDataStorage(_mdStorage);
         _contractMetadataURI = _metadataURI;
     }
@@ -67,7 +72,7 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
     }
 
     function setPublicSales(bool newValue) external onlyOwner {
-        _isPublicSalesOpen = newValue;
+        isPublicSalesOpen = newValue;
     }
 
     //
@@ -75,8 +80,7 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
     //
 
     function mint(uint256 day) public payable dateBounds(day) {
-        require(_isPublicSalesOpen, "Public sales are closed now");
-        console.log("MINT42");
+        require(isPublicSalesOpen, "Public sales are closed now");
         uint256 price = getAvailability(day);
         require(price > 0, "The token already taken");
         require(msg.value >= price, "No enough funds");
@@ -131,7 +135,10 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
         view
         returns (uint256)
     {
+        console.log("ASDASDASD");
+        console.log(collection);
         ERC721 collContract = ERC721(collection);
+
         address _owner = collContract.ownerOf(tokenId);
         if (_owner == msg.sender) {
             return SET_ART_PRICE_OWNER;
@@ -151,8 +158,16 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
             msg.value >= getArtPrice(collection, tokenId),
             "not funds enough"
         );
-        MetaDataStorageAddress.setArt(tokenId, collection, artId);
-        emit ArtUpdateRequested(tokenId);
+        // MetaDataStorageAddress.setArt(tokenId, collection, artId);
+        // emit ArtUpdateRequested(tokenId, collection, artId);
+    }
+
+    function getArtHistory(uint256 tokenId)
+        external
+        view
+        returns (ArtManager.ArtInfo[] memory)
+    {
+        return MetaDataStorageAddress.getArtHistory(tokenId);
     }
 
     function removeArt(
@@ -164,19 +179,16 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
     }
 
     // updating metadata by server
-    function updateMetadata(
-        uint256 tokenId,
-        string memory metadataUrl,
-        bool force
-    ) external onlyOwner {
+    function updateMetadata(uint256 tokenId, string memory metadataUrl)
+        external
+        onlyOwner
+    {
         require(
             _exists(tokenId),
             "ERC721URIStorage: URI query for nonexistent token"
         );
-        console.log("UMD1");
-        MetaDataStorageAddress.updateMetadata(tokenId, metadataUrl, force);
+        MetaDataStorageAddress.updateMetadata(tokenId, metadataUrl);
         emit MetadataSet(tokenId, metadataUrl);
-        console.log("UMD2");
     }
 
     function setTokenURI(uint256 _tokenId, string memory _tokenURI)

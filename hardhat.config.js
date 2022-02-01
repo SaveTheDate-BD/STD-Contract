@@ -32,11 +32,11 @@ const ETHERSCAN_API_KEY =
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "your private key";
 
 module.exports = {
-  defaultNetwork: "ganache",
+  defaultNetwork: "hardhat",
   networks: {
     hardhat: {
-      chainId: 1337,
-      saveDeployments: true,
+      // chainId: 1337,
+      // saveDeployments: true,
       // // If you want to do some forking, uncomment this
       // forking: {
       //   url: MAINNET_RPC_URL
