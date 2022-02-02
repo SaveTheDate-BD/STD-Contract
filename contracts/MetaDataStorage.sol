@@ -6,7 +6,7 @@ import "./ArtManager.sol";
 import "hardhat/console.sol";
 
 contract MetaDataStorage is Ownable, ArtManager {
-    mapping(uint256 => string) private _tokenURIs;
+    // mapping(uint256 => string) private _tokenURIs;
     string defaultMeta =
         '{"name":"BigDay [Minting...]", "description":"Minting in progress. Please, stand by."}';
 
@@ -16,7 +16,8 @@ contract MetaDataStorage is Ownable, ArtManager {
         onlyOwner
         returns (string memory)
     {
-        return _tokenURIs[tokenId];
+        ArtInfo storage ca = _getCurrentArt(tokenId);
+        return ca.url;
     }
 
     function updateMetadata(uint256 tokenId, string memory metadataUrl)
@@ -24,15 +25,10 @@ contract MetaDataStorage is Ownable, ArtManager {
         onlyOwner
     {
         _updateMetadata(tokenId, metadataUrl);
-        _tokenURIs[tokenId] = metadataUrl;
     }
 
-    function removeArt(
-        uint256 tokenId,
-        address collection,
-        uint256 artId
-    ) external onlyOwner {
-        _removeArt(tokenId, collection, artId);
+    function removeArt(uint256 tokenId, uint256 index) external onlyOwner {
+        _removeArt(tokenId, index);
     }
 
     function setArt(
@@ -43,20 +39,15 @@ contract MetaDataStorage is Ownable, ArtManager {
         _setArt(tokenId, collection, artId);
     }
 
-    function clearTokenURI(uint256 tokenId) external onlyOwner {
-        if (bytes(_tokenURIs[tokenId]).length != 0) {
-            delete _tokenURIs[tokenId];
-        }
-    }
-
     function setTokenURI(uint256 tokenId, string memory _tokenURI)
         external
         onlyOwner
     {
+        ArtInfo storage ca = _getCurrentArt(tokenId);
         if (bytes(_tokenURI).length == 0) {
-            _tokenURIs[tokenId] = defaultMeta;
+            ca.url = defaultMeta;
         } else {
-            _tokenURIs[tokenId] = _tokenURI;
+            ca.url = _tokenURI;
         }
     }
 
@@ -64,7 +55,7 @@ contract MetaDataStorage is Ownable, ArtManager {
         external
         onlyOwner
     {
-        _tokenURIs[tokenId] = _changeActiveArt(tokenId, newIndex);
+        _changeActiveArt(tokenId, newIndex);
     }
 
     function setDefaultMetadata(string memory newDMD) external onlyOwner {

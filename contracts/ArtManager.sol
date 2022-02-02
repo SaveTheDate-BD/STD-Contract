@@ -2,6 +2,7 @@
 
 pragma solidity 0.8.7;
 import "./openzeppelin/token/ERC721/ERC721.sol";
+import "hardhat/console.sol";
 
 abstract contract ArtManager {
     constructor() {}
@@ -29,8 +30,11 @@ abstract contract ArtManager {
             artTokenId: artId,
             url: ""
         });
+        console.log("set art:", _tokenArtHistory[tokenId].length);
         _tokenArtHistory[tokenId].push(artInfo);
         _tokenActiveArt[tokenId] = _tokenArtHistory[tokenId].length - 1;
+        console.log("set art_:", _tokenArtHistory[tokenId].length);
+        console.log("set art+_:", tokenId, _tokenActiveArt[tokenId]);
     }
 
     function _updateMetadata(uint256 tokenId, string memory metadataUrl)
@@ -42,36 +46,19 @@ abstract contract ArtManager {
         );
         string memory url = _tokenArtHistory[tokenId][_tokenActiveArt[tokenId]]
             .url;
+        console.log(" art up:", _tokenActiveArt[tokenId]);
+        console.log(" art up_:", url, ":", bytes(url).length);
         // rewrite protection
         require(bytes(url).length == 0, "Metadata is immutable");
         // write
         _tokenArtHistory[tokenId][_tokenActiveArt[tokenId]].url = metadataUrl;
     }
 
-    function _removeArt(
-        uint256 tokenId,
-        address artCollectionAddress,
-        uint256 artTokenId
-    ) internal {
+    function _removeArt(uint256 tokenId, uint256 index) internal {
         // Remove art from history
-        for (uint256 i = 0; i < _tokenArtHistory[tokenId].length; i++) {
-            if (
-                _tokenArtHistory[tokenId][i].artTokenId == artTokenId &&
-                artCollectionAddress == _tokenArtHistory[tokenId][i].collection
-            ) {
-                _removeElementFromArray(i, _tokenArtHistory[tokenId]);
-                break;
-            }
-        }
-        // upadte the active art
-        if (
-            _tokenArtHistory[tokenId][_tokenActiveArt[tokenId]].collection !=
-            address(0) &&
-            _tokenArtHistory[tokenId][_tokenActiveArt[tokenId]].artTokenId ==
-            artTokenId &&
-            artCollectionAddress ==
-            _tokenArtHistory[tokenId][_tokenActiveArt[tokenId]].collection
-        ) {
+        _removeElementFromArray(index, _tokenArtHistory[tokenId]);
+        // if was active
+        if (index == _tokenActiveArt[tokenId]) {
             if (_tokenArtHistory[tokenId].length > 0) {
                 _tokenActiveArt[tokenId] = _tokenArtHistory[tokenId].length - 1;
             } else {
@@ -80,8 +67,20 @@ abstract contract ArtManager {
         }
     }
 
-    function getCurrentArt(uint256 tokenId) external view returns (uint256) {
-        return _tokenActiveArt[tokenId];
+    function _getCurrentArt(uint256 tokenId)
+        internal
+        view
+        returns (ArtInfo storage)
+    {
+        return _tokenArtHistory[tokenId][_tokenActiveArt[tokenId]];
+    }
+
+    function getCurrentArt(uint256 tokenId)
+        public
+        view
+        returns (ArtInfo memory)
+    {
+        return _getCurrentArt(tokenId);
     }
 
     function getArtHistory(uint256 tokenId)

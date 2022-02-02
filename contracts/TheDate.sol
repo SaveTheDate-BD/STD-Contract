@@ -50,6 +50,9 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
     }
 
     modifier isTokenOwner(uint256 tokenId) {
+        console.log("ZzzZ", tokenId);
+        console.log("ZzzZ", owner());
+        console.log("ZzzZ", ownerOf(tokenId));
         require(ownerOf(tokenId) == owner(), "only owner");
         _;
     }
@@ -63,12 +66,7 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
         if (_exists(day)) {
             return 0;
         }
-        // for the future
-        if (day >= _getCurrentDay() - _getFutureDay()) {
-            return _getFuturePrice();
-        } else {
-            return _getPastPrice();
-        }
+        return _getPrice();
     }
 
     function setPublicSales(bool newValue) external onlyOwner {
@@ -89,12 +87,13 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
         MetaDataStorageAddress.setArt(day, address(this), day);
         MetaDataStorageAddress.setTokenURI(day, "");
         emit TokenMinted(day, msg.sender, price, false);
+        _incrPriceMultiplier();
     }
 
     function burn(uint256 _tokenId) public virtual isTokenOwner(_tokenId) {
-        require(_exists(_tokenId), "URI set of nonexistent token");
-        MetaDataStorageAddress.clearTokenURI(_tokenId);
-        _burn(_tokenId);
+        require(_exists(_tokenId), "nonexistent token");
+        transferFrom(msg.sender, owner(), _tokenId);
+        _dropPriceMultiplier();
     }
 
     function privateMint(PrivateMintPayload memory dayPayload)
@@ -130,7 +129,7 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
     //
     // ART AND META
     //
-    function getArtPrice(address collection, uint256 tokenId)
+    function getArtPrice(address collection, uint256 artId)
         public
         view
         returns (uint256)
@@ -139,7 +138,7 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
         console.log(collection);
         ERC721 collContract = ERC721(collection);
 
-        address _owner = collContract.ownerOf(tokenId);
+        address _owner = collContract.ownerOf(artId);
         if (_owner == msg.sender) {
             return SET_ART_PRICE_OWNER;
         } else {
@@ -155,11 +154,11 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
         uint256 artId
     ) external payable {
         require(
-            msg.value >= getArtPrice(collection, tokenId),
+            msg.value >= getArtPrice(collection, artId),
             "not funds enough"
         );
-        // MetaDataStorageAddress.setArt(tokenId, collection, artId);
-        // emit ArtUpdateRequested(tokenId, collection, artId);
+        MetaDataStorageAddress.setArt(tokenId, collection, artId);
+        emit ArtUpdateRequested(tokenId, collection, artId);
     }
 
     function getArtHistory(uint256 tokenId)
@@ -170,12 +169,8 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
         return MetaDataStorageAddress.getArtHistory(tokenId);
     }
 
-    function removeArt(
-        uint256 tokenId,
-        address collection,
-        uint256 artId
-    ) public onlyOwner {
-        MetaDataStorageAddress.removeArt(tokenId, collection, artId);
+    function removeArt(uint256 tokenId, uint256 index) public onlyOwner {
+        MetaDataStorageAddress.removeArt(tokenId, index);
     }
 
     // updating metadata by server
@@ -214,26 +209,6 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
     // Overrides
     // --
 
-    function setBasePriceStepMultiplier(uint256 newValue)
-        public
-        override
-        onlyOwner
-    {
-        super.setBasePriceStepMultiplier(newValue);
-    }
-
-    function setFuturePriceMultiplier(uint256 newValue)
-        public
-        override
-        onlyOwner
-    {
-        super.setFuturePriceMultiplier(newValue);
-    }
-
-    function setFutureDay(uint256 newValue) public virtual override onlyOwner {
-        super.setFutureDay(newValue);
-    }
-
     function tokenURI(uint256 _tokenId)
         public
         view
@@ -253,8 +228,12 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
     }
 
     //
+    // ADMIN AND SYSTEM
     //
-    //
+
+    function setPriceMultiplier(uint256 newValue) public onlyOwner {
+        _setPriceMultiplier(newValue);
+    }
 
     function setContractURI(string memory newValue) public onlyOwner {
         _contractMetadataURI = newValue;
