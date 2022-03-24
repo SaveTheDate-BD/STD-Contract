@@ -36,7 +36,7 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
         uint256 artId
     );
     event RoyaltiesRequested(address requester);
-    bool public isPublicSalesOpen = false;
+    bool public isPublicSalesOpen = true;
     string _contractMetadataURI;
     MetaDataStorage MetaDataStorageAddress;
 
@@ -44,15 +44,11 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
         ERC721(COLLECTION_NAME, TOKEN_NAME)
     // OpenseaExtension(PROXY_REGISTERY_ADDRESS)
     {
-        console.log("TEST");
         MetaDataStorageAddress = MetaDataStorage(_mdStorage);
         _contractMetadataURI = _metadataURI;
     }
 
     modifier isTokenOwner(uint256 tokenId) {
-        console.log("ZzzZ", tokenId);
-        console.log("ZzzZ", owner());
-        console.log("ZzzZ", ownerOf(tokenId));
         require(ownerOf(tokenId) == owner(), "only owner");
         _;
     }

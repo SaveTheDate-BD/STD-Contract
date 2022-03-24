@@ -38,6 +38,7 @@
     "dotenv": "^8.2.0",
     "eslint": "^7.22.0",
     "eth-gas-reporter": "^0.2.23",
+    "fs-extra": "^10.0.0",
     "hardhat-tracer": "^1.0.0-alpha.6",
     "mocha-skip-if": "^0.0.3",
     "solidity-linked-list": "^5.1.0",

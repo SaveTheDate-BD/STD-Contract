@@ -2,7 +2,9 @@ let {
   networkConfig,
   getNetworkIdFromName,
 } = require("../helper-hardhat-config");
-const fs = require("fs");
+const fs = require("fs-extra");
+const path = require("path");
+const { COPYABI } = process.env;
 const { contracts_build_directory } = require("../truffle-config");
 // module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {};
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
@@ -10,6 +12,13 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deployer } = await getNamedAccounts();
   const chainId = await getChainId();
   const networkName = networkConfig[chainId]["name"];
+  const abiJsonPath = path.resolve(`./deployments/${networkName}/TheDate.json`);
+  const serverABIPath = path.resolve(
+    `../STD-Server/ABI/${networkName}/TheDate.json`
+  );
+  const feABIPath = path.resolve(
+    `../STD-visual/ABI/${networkName}/TheDate.json`
+  );
 
   let operatorAddress = "0x5418469B80A56631EBbED3F95b20Bf77CdB74Ccb";
   const gasLimit = 3000000;
@@ -107,6 +116,19 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     operatorAddress,
     receipt.events[0].topics
   );
+
+  if (COPYABI) {
+    console.log("Spread ABI...");
+    await fs
+      .copy(abiJsonPath, serverABIPath)
+      .then(() => console.log("copied!"))
+      .catch((err) => console.error(err));
+
+    await fs
+      .copy(abiJsonPath, feABIPath)
+      .then(() => console.log("copied!"))
+      .catch((err) => console.error(err));
+  }
 };
 
 module.exports.tags = ["all", "mine", "main"];
