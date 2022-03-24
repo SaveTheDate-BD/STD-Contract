@@ -130,15 +130,13 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
         view
         returns (uint256)
     {
-        console.log("ASDASDASD");
-        console.log(collection);
         ERC721 collContract = ERC721(collection);
 
         address _owner = collContract.ownerOf(artId);
         if (_owner == msg.sender) {
             return SET_ART_PRICE_OWNER;
         } else {
-            return SET_ART_PRICE;
+            return 0;
         }
     }
 
@@ -149,10 +147,9 @@ contract TheDate is Ownable, IERC721Receiver, TokenAsDate, ERC721 {
         address collection,
         uint256 artId
     ) external payable {
-        require(
-            msg.value >= getArtPrice(collection, artId),
-            "not funds enough"
-        );
+        uint256 setArtPrice = getArtPrice(collection, artId);
+        require(msg.value > 0, "You have to be an owner");
+        require(msg.value >= setArtPrice, "not funds enough");
         MetaDataStorageAddress.setArt(tokenId, collection, artId);
         emit ArtUpdateRequested(tokenId, collection, artId);
     }
